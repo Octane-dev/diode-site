@@ -121,6 +121,8 @@ router.get('/auth/discord', passport.authenticate('discord'));
 router.get('/auth/discord/callback', passport.authenticate('discord', { failureRedirect: '/' }), (req, res) => {
     console.log('User authenticated successfully. User:', req.user);
     console.log('Session:', req.session);
+    res.setHeader('Set-Cookie', req.headers['set-cookie']);
+    console.log('Set-Cookie:', res.getHeaders()['set-cookie']);
     res.redirect(`${config.siteUrl}/`);
 });
 
