@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const passport = require('passport');
 const querystring = require('querystring');
@@ -295,10 +296,8 @@ const transporter = nodemailer.createTransport({
     port: 465,
     secure: true,
     auth: {
-        // user: process.env.EMAIL_USER,
-        // pass: process.env.EMAIL_PASS,
-        user: 'diode@octaneinteractive.co.uk',
-        pass: '$$octane95',
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
     },
 });
 
