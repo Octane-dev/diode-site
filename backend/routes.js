@@ -119,8 +119,11 @@ async function fetchGuildDataWithCache(guild, botToken) {
 router.get('/auth/discord', passport.authenticate('discord'));
 
 router.get('/auth/discord/callback', passport.authenticate('discord', { failureRedirect: '/' }), (req, res) => {
+    console.log('User authenticated successfully. User:', req.user);
+    console.log('Session:', req.session);
     res.redirect(`${config.siteUrl}/`);
 });
+
 
 router.get('/auth/discord/server', (req,res) => {
     // extra logic
@@ -134,17 +137,18 @@ router.get('/auth/check', (req, res) => {
     console.log('Session user:', req.user);
 
     if (req.isAuthenticated()) {
+        console.log('User is authenticated.');
         res.json({
             authenticated: true,
             user: req.user
         });
     } else {
+        console.log('User is NOT authenticated.');
         res.json({
             authenticated: false
         });
     }
 });
-
 
 router.get('/auth/logout', (req, res) => {
     req.logout((err) => {
