@@ -6,5 +6,14 @@ module.exports = {
     sessionSecret: process.env.SESSION_SECRET,
     botToken: process.env.BOT_TOKEN,
     secretKey: process.env.SECRET_KEY,
-    siteUrl: process.env.SITE_URL
+    siteUrl: process.env.SITE_URL,
+
+    smtp: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
+        host: 'mail.privateemail.com',
+        port: 465,
+        secure: true,
+        admin: process.env.ADMIN_EMAIL,
+    }
 };

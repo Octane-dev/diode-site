@@ -292,17 +292,19 @@ router.get('/api/guilds/:guildId/channels', async (req, res) => {
 // Non-Discord Processes
 
 const transporter = nodemailer.createTransport({
-    host: 'mail.privateemail.com',
-    port: 465,
-    secure: true,
+    host: config.smtp.host,
+    port: config.smtp.port,
+    secure: config.smtp.secure,
     auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
+        user: config.smtp.user,
+        pass: config.smtp.pass,
     },
 });
 
+console.log(config.smtp)
+
 const mailOptions = {
-    from: process.env.EMAIL_USER,
+    from: config.smtp.user,
     to: 'bjoernflew@gmail.com',
     subject: 'Test Email from PrivateEmail',
     text: 'This is a test email sent via PrivateEmail and Nodemailer.',
@@ -332,25 +334,25 @@ router.post('/api/contact', async (req, res) => {
 
     try {
         const transporter = nodemailer.createTransport({
-            host: process.env.EMAIL_HOST,
-            port: 465,
-            secure: true,
+            host: config.smtp.host,
+            port: config.smtp.port,
+            secure: config.smtp.secure,
             auth: {
-                user: process.env.EMAIL_USER,
-                pass: process.env.EMAIL_PASS,
+                user: config.smtp.user,
+                pass: config.smtp.pass,
             },
         });
 
         const ownerMailOptions = {
-            from: process.env.EMAIL_USER,
-            to: process.env.ADMIN_EMAIL,
+            from: config.smtp.user,
+            to: config.smtp.admin,
             subject: `Contact Form: ${subject}`,
             text: `Name: ${name}\nEmail: ${email}\nSubject: ${subject}\n\n${message}`,
             replyTo: email,
         };
 
         const userMailOptions = {
-            from: process.env.EMAIL_USER,
+            from: config.smtp.user,
             to: email,
             subject: `Thank you for reaching out!`,
             html: `
