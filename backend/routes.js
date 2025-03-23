@@ -307,6 +307,14 @@ const mailOptions = {
     text: 'This is a test email sent via PrivateEmail and Nodemailer.',
 };
 
+transporter.verify((err, success) => {
+    if (err) {
+        console.error('SMTP connection error:', err);
+    } else {
+        console.log('SMTP server is ready to take messages');
+    }
+});
+
 transporter.sendMail(mailOptions, (error, info) => {
     if (error) {
         return console.error('Error:', error);
