@@ -16,19 +16,11 @@ const allowedOrigins = [
     'http://192.168.1.205:3001',
     'https://diode.octaneinteractive.co.uk'   
 ];
+
 app.use(cors({
-    origin: function (origin, callback) {
-        if (!origin) return callback(null, true);
-        if (allowedOrigins.indexOf(origin) === -1) {
-            console.error(`Blocked by CORS: ${origin}`);
-            return callback(new Error('CORS policy error: Origin not allowed'), false);
-        }
-        return callback(null, true);
-    },
+    origin: allowedOrigins,
     credentials: true
 }));
-
-
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -40,12 +32,10 @@ app.use(session({
     saveUninitialized: false,
     cookie: { 
         secure: process.env.NODE_ENV === 'production',
-        httpOnly: true,
-        sameSite: 'lax'
+        httpOnly: true, 
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
     }
 }));
-
-
 
 passport.use(new DiscordStrategy({
     clientID: config.clientId,
