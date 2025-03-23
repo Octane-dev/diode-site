@@ -14,7 +14,7 @@ const PORT = process.env.PORT || 3000;
 const allowedOrigins = [
     'http://localhost:3001',
     'http://192.168.1.205:3001',
-    'https://diode.octaneinteractive.co.uk'        
+    'https://diode.octaneinteractive.co.uk'   
 ];
 app.use(cors({
     origin: function (origin, callback) {
@@ -38,8 +38,13 @@ app.use(session({
     secret: config.secretKey,
     resave: false,
     saveUninitialized: false,
-    cookie: { secure: process.env.NODE_ENV === 'production', httpOnly: true }
+    cookie: { 
+        secure: process.env.NODE_ENV === 'production',
+        httpOnly: true,
+        sameSite: 'lax'
+    }
 }));
+
 
 
 passport.use(new DiscordStrategy({
