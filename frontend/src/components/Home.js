@@ -12,7 +12,7 @@ function Home({ user }) {
             <h2 className='mt-2 fs-3 fw-light'>A Multipurpose Discord Bot</h2>
             <Col className='d-flex justify-content-center gap-3 mt-3'>
                 <Button 
-                    href="http://192.168.1.205:3000/discord/invite" 
+                    href="https://api.octaneinteractive.co.uk/discord/invite" 
                     variant="success" 
                     size="lg" 
                     className="primary-button"

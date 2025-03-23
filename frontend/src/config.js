@@ -1,3 +1,3 @@
 // src/config.js
-export const API_BASE_URL = 'http://192.168.1.205:3000';
+export const API_BASE_URL = process.env.REACT_APP_API_URL;
 

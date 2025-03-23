@@ -42,7 +42,7 @@ function App() {
                         <Navbar.Toggle aria-controls="basic-navbar-nav" />
                         <Navbar.Collapse id="basic-navbar-nav">
                             <Nav className="me-auto">
-                                <Nav.Link href="http://192.168.1.205:3000/discord/invite">Invite</Nav.Link>
+                                <Nav.Link href="https://api.octaneinteractive.co.uk/discord/invite">Invite</Nav.Link>
                                 <Nav.Link as={Link} to="/documentation">Docs</Nav.Link>
                                 <Nav.Link href="https://discord.com/invite/WpH4dNhPPn">Discord</Nav.Link>
                                 <Nav.Link as={Link} to="/status">Status</Nav.Link>
@@ -55,10 +55,10 @@ function App() {
                                         <NavDropdown.Item as={Link} to="/dashboard">Dashboard</NavDropdown.Item>
                                         <NavDropdown.Item as={Link} to="/settings">Settings</NavDropdown.Item>
                                         <NavDropdown.Divider />
-                                        <NavDropdown.Item href="http://192.168.1.205:3000/auth/logout">Logout</NavDropdown.Item>
+                                        <NavDropdown.Item href="https://api.octaneinteractive.co.uk/auth/logout">Logout</NavDropdown.Item>
                                     </NavDropdown>
                                 ) : (
-                                    <Nav.Link href="http://192.168.1.205:3000/auth/discord" className="btn btn-success" style={{ backgroundColor: '#1b983c', color: '#ffffff' }}>
+                                    <Nav.Link href="https://api.octaneinteractive.co.uk/auth/discord" className="btn btn-success" style={{ backgroundColor: '#1b983c', color: '#ffffff' }}>
                                         Login with Discord
                                     </Nav.Link>
                                 )}
