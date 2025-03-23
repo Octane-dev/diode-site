@@ -1,5 +1,15 @@
 require('dotenv').config();
 
+const decodePassword = (password) => {
+    if (!password) return null;
+    try {
+        return decodeURIComponent(password);
+    } catch (error) {
+        console.error('Error decoding SMTP password:', error);
+        return password;
+    }
+};
+
 module.exports = {
     clientId: process.env.CLIENT_ID,
     clientSecret: process.env.CLIENT_SECRET,
@@ -12,7 +22,7 @@ module.exports = {
 
     smtp: {
         user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
+        pass: decodePassword(process.env.SMTP_PASS),
         host: 'mail.privateemail.com',
         port: 465,
         secure: true,
