@@ -49,6 +49,7 @@ passport.use(new DiscordStrategy({
 }));
 
 passport.serializeUser((user, done) => {
+    console.log('Serialising user:',user)
     done(null, {
         id: user.id,
         avatar: user.avatar,
@@ -58,6 +59,7 @@ passport.serializeUser((user, done) => {
 });
 
 passport.deserializeUser((obj, done) => {
+    console.log('Deserialising user:',obj)
     done(null, obj);
 });
 

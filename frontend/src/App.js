@@ -21,10 +21,11 @@ function App() {
     useEffect(() => {
         fetch(`${API_BASE_URL}/auth/check`, {
             method: 'GET',
-            credentials: 'include' // Include session cookies
+            credentials: 'include'
         })
             .then(response => response.json())
             .then(data => {
+                console.log('Auth check response', data)
                 if (data.authenticated) {
                     setUser(data.user);
                 }
