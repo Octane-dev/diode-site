@@ -124,13 +124,13 @@ async function fetchGuildDataWithCache(guild, botToken) {
 router.get('/auth/discord', passport.authenticate('discord'));
 
 router.get('/auth/discord/callback', passport.authenticate('discord', { failureRedirect: '/' }), (req, res) => {
-    res.redirect('http://192.168.1.205:3001/');
+    res.redirect(`${config.siteUrl}/`);
 });
 
 router.get('/auth/discord/server', (req,res) => {
     // extra logic
 
-    res.redirect('http://192.168.1.205:3001/dashboard')
+    res.redirect(`${config.siteUrl}/dashboard`)
 })
 
 router.get('/auth/check', (req, res) => {
@@ -157,7 +157,7 @@ router.get('/auth/logout', (req, res) => {
             return res.status(500).json({ message: 'Failed to logout' });
         }
         res.clearCookie('connect.sid');
-        res.redirect('http://192.168.1.205:3001/');
+        res.redirect(`${config.siteUrl}/`);
     });
 });
 
@@ -367,7 +367,7 @@ router.post('/api/contact', async (req, res) => {
                     <p>In the meantime, feel free to check out our website or follow us on social media:</p>
                     <ul style="list-style: none; padding: 0; margin: 20px 0;">
                         <li style="margin-bottom: 10px;">
-                            <a href="http://192.168.1.205:3001" style="color: #4CAF50; text-decoration: none;">Visit Our Website</a>
+                            <a href="https://diode.octaneinteractive.co.uk" style="color: #4CAF50; text-decoration: none;">Visit Our Website</a>
                         </li>
                         <li style="margin-bottom: 10px;">
                             <a href="https://twitter.com/" style="color: #4CAF50; text-decoration: none;">Follow Us on Twitter</a>
