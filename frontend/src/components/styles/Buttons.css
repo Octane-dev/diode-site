@@ -1,0 +1,27 @@
+/* Primary - green */
+.primary-button {
+    background-color: #1b983c;
+    color:'#ffffff';
+}
+.primary-button:hover {
+    background-color: #188535;
+}
+
+/* Secondary - green outline */
+.secondary-button-outline {
+    background-color: rgba(0,0,0,0) !important;
+    border: 1px solid #1b983c !important;
+    /* background-color: #1b983c; */
+    color:#ffffff;
+}
+.secondary-button-outline:hover {
+    background-color: #082c12 !important;
+}
+
+.pointer-cursor {
+    cursor: pointer !important;
+}
+
+.not-allowed-cursor {
+    cursor: not-allowed !important;
+}

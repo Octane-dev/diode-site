@@ -1,0 +1,17 @@
+.status-accordion {
+    color: #fff !important;
+    --bs-accordion-color: #fff;
+    --bs-accordion-border-width: 0;
+    --bs-accordion-bg: #212529;
+    --bs-accordion-btn-color: #fff;
+    --bs-accordion-btn-bg: #212529;
+    --bs-accordion-active-color: #fff;
+    --bs-accordion-active-bg: #343a41;
+}
+
+.accordion-border {
+    border-top: #343a41 2px solid !important;
+}
+.accordion-border:nth-child(0) {
+    border: none;
+}

@@ -1,0 +1,195 @@
+.embed-preview {
+    display: flex;
+    align-items: flex-start;
+    margin-top: 1rem;
+}
+
+.embed-container {
+    border-radius: 3px;
+    background-color: #2f3136;
+    padding: 10px;
+    color: #ffffff;
+    display: flex;
+}
+
+.embed-content {
+    padding-left: 12px;
+    flex: 1;
+}
+
+.embed-title {
+    font-size: 21px;
+    font-weight: bold;
+}
+
+.embed-description {
+    margin-top: 12px;
+}
+
+.embed-field {
+    margin-top: 10px;
+}
+
+.embed-field-name {
+    font-weight: bold;
+}
+
+.embed-field-value {
+    margin-top: 5px;
+}
+
+.dark-input {
+    background-color: #2f3136;
+    color: #ffffff;
+    border: 1px solid #444;
+}
+
+.dark-card {
+    background-color: #2f3136;
+    color: #ffffff;
+}
+
+.draggable-handle {
+    cursor: move;
+    display: inline-block;
+    margin-right: 1rem;
+}
+
+
+
+/* Ensure background color stays dark on focus */
+.form-control {
+    background-color: #2e2e2e; /* Dark background for input fields */
+    color: #ffffff; /* Light text color for better readability */
+    border: 1px solid #444; /* Border color matching the dark theme */
+}
+
+.form-control:focus {
+    background-color: #2e2e2e; /* Maintain dark background on focus */
+    color: #ffffff; /* Maintain light text color */
+    border-color: #666; /* Slightly lighter border on focus */
+    box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.25); /* Optional: subtle shadow for focus */
+}
+
+.form-control::placeholder {
+    color: #888; /* Placeholder text color */
+}
+
+/* Style for the dark theme card */
+.card {
+    background-color: #333; /* Dark background for the card */
+    color: #ffffff; /* Light text color */
+}
+
+.card-header {
+    background-color: #444; /* Darker header for the card */
+}
+
+/* Style for the buttons */
+.btn-primary {
+    background-color: #007bff; /* Change this if you need a different primary button color */
+    border: none;
+}
+
+.btn-primary:hover {
+    background-color: #0056b3;
+}
+
+.btn-danger {
+    background-color: #dc3545; /* Color for the remove button */
+    border: none;
+}
+
+.btn-danger:hover {
+    background-color: #c82333;
+}
+
+.btn-secondary {
+    background-color: #6c757d; /* Color for the copy button */
+    border: none;
+}
+
+.btn-secondary:hover {
+    background-color: #5a6268;
+}
+
+/* Style for the fields in the ListGroup */
+.list-group-item {
+    background-color: #2e2e2e; /* Dark background for ListGroup items */
+    color: #ffffff; /* Light text color */
+    border: 1px solid #444; /* Border color matching the dark theme */
+}
+
+.list-group-item .embed-field-name,
+.list-group-item .embed-field-value {
+    color: #ffffff; /* Light text color for field names and values */
+}
+
+/* Style for the remove button in ListGroup items */
+.list-group-item .btn-danger {
+    background-color: #dc3545; /* Color for the remove button */
+    border: none;
+}
+
+.list-group-item .btn-danger:hover {
+    background-color: #c82333;
+}
+
+/* General Styles */
+.dark-input {
+    background-color: #343a40;
+    color: #ffffff;
+    border: 1px solid #495057;
+}
+
+.embed-preview {
+    margin-top: 1rem;
+}
+
+.embed-container {
+    display: flex;
+    flex-direction: column;
+    padding: 1rem;
+    border-radius: 4px;
+    background-color: #2e2e2e;
+}
+
+.embed-content {
+    padding: 1rem;
+}
+
+.embed-title {
+    font-size: 1.25rem;
+    font-weight: bold;
+}
+
+.embed-description, .embed-field-value {
+    margin-top: 0.5rem;
+}
+
+.embed-field {
+    margin-top: 0.5rem;
+}
+
+.draggable-handle {
+    cursor: move;
+    display: inline-block;
+    margin-right: 1rem;
+}
+
+.collapse-btn {
+    background-color: #007bff;
+    font-size: 1.25rem;
+    padding: 0;
+    margin-left: 0.5rem;
+}
+
+.collapse-btn i {
+    font-size: 1.25rem; /* Adjust this size as needed */
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}

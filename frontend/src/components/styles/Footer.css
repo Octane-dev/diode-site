@@ -1,0 +1,19 @@
+/* src/styles/Footer.css */
+.footer {
+    padding: 1rem 0;
+    background-color: #343a40;
+}
+
+.footer p {
+    margin: 0;
+    color: #ffffff;
+}
+
+.footer a {
+    color: #ffffff;
+    margin-left: 1rem;
+}
+
+.footer a:hover {
+    color: #adb5bd;
+}
