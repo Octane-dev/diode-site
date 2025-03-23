@@ -66,10 +66,8 @@ class RequestQueue {
     }
 }
 
-// Instantiate the request queue
 const requestQueue = new RequestQueue();
 
-// Function to fetch enriched guild data with rate limit handling
 async function fetchGuildDataWithRateLimit(guild, botToken) {
     return requestQueue.addToQueue(async () => {
         return await axios.get(`https://discord.com/api/v10/guilds/${guild.id}`, {
@@ -82,18 +80,15 @@ async function fetchGuildDataWithRateLimit(guild, botToken) {
 
 const guildCache = new NodeCache({ stdTTL: 300, checkperiod: 60 });
 
-// Function to fetch enriched guild data with caching and rate limit handling
 async function fetchGuildDataWithCache(guild, botToken) {
     const cacheKey = `guild_${guild.id}`;
 
-    // Check if data is already cached
     const cachedData = guildCache.get(cacheKey);
     if (cachedData) {
         console.log(`Cache hit for guild ${guild.id}`);
-        return cachedData; // Return cached data
+        return cachedData;
     }
 
-    // If not cached, fetch from Discord API
     return requestQueue.addToQueue(async () => {
         try {
             const response = await axios.get(`https://discord.com/api/v10/guilds/${guild.id}`, {
@@ -102,17 +97,16 @@ async function fetchGuildDataWithCache(guild, botToken) {
                 },
             });
 
-            // Cache the fetched data
             guildCache.set(cacheKey, response.data);
             console.log(`Cache set for guild ${guild.id}`);
 
             return response.data;
         } catch (err) {
             if (err.response && err.response.status === 429) {
-                const retryAfter = Math.ceil(err.response.data.retry_after * 1000); // Convert seconds to ms
+                const retryAfter = Math.ceil(err.response.data.retry_after * 1000);
                 console.warn(`Rate limit hit for guild ${guild.id}. Retrying after ${retryAfter}ms...`);
                 await new Promise((resolve) => setTimeout(resolve, retryAfter));
-                return fetchGuildDataWithCache(guild, botToken); // Retry the request
+                return fetchGuildDataWithCache(guild, botToken);
             }
             throw err;
         }
@@ -134,9 +128,9 @@ router.get('/auth/discord/server', (req,res) => {
 })
 
 router.get('/auth/check', (req, res) => {
-    console.log('Session Data:', req.session); // Log the entire session object
-    console.log('Passport Data:', req.session?.passport); // Log the Passport-specific data
-    console.log('Session user:', req.user); // Log the deserialized user object
+    console.log('Session Data:', req.session);
+    console.log('Passport Data:', req.session?.passport);
+    console.log('Session user:', req.user);
 
     if (req.isAuthenticated()) {
         res.json({
@@ -215,9 +209,8 @@ router.get('/api/guilds/:guildId', checkAuth, async (req, res) => {
         res.json({ 
             botPresent: true, 
             guild: response.data 
-        }); // Bot is in the guild, return the guild data
+        });
     } catch (error) {
-        // If the bot is not in the guild or unauthorized, return status indicating this
         if (error.response && (error.response.status === 401 || error.response.status === 404)) {
             res.json({ 
                 botPresent: false 
@@ -245,7 +238,6 @@ router.get('/discord/invite/:guildId', (req, res) => {
 
 router.get('/api/users/@me', async (req, res) => {
     try {
-        // Access the accessToken directly from the session
         const accessToken = req.session?.passport?.user?.accessToken;
 
         if (!accessToken) {
@@ -275,7 +267,7 @@ router.get('/api/guilds/:guildId/roles', async (req, res) => {
     const { guildId } = req.params;
 
     try {
-        const roles = await getGuildRoles(guildId); // Call controller function to fetch roles
+        const roles = await getGuildRoles(guildId);
         res.json({ roles });
     } catch (err) {
         console.error('Error fetching roles:', err);
@@ -287,7 +279,7 @@ router.get('/api/guilds/:guildId/channels', async (req, res) => {
     const { guildId } = req.params;
 
     try {
-        const channels = await getGuildChannels(guildId); // Call controller function to fetch channels
+        const channels = await getGuildChannels(guildId);
         res.json({ channels });
     } catch (err) {
         console.error('Error fetching channels:', err);

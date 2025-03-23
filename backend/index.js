@@ -11,11 +11,16 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // CORS Configuration
-const allowedOrigins = ['http://localhost:3001', 'http://192.168.1.205:3001'];
+const allowedOrigins = [
+    'http://localhost:3001',
+    'http://192.168.1.205:3001',
+    'https://diode.octaneinteractive.co.uk'        
+];
 app.use(cors({
     origin: function (origin, callback) {
         if (!origin) return callback(null, true);
         if (allowedOrigins.indexOf(origin) === -1) {
+            console.error(`Blocked by CORS: ${origin}`);
             return callback(new Error('CORS policy error: Origin not allowed'), false);
         }
         return callback(null, true);
@@ -23,11 +28,12 @@ app.use(cors({
     credentials: true
 }));
 
-// Middleware to parse JSON bodies
+
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Session management
+
 app.use(session({
     secret: config.secretKey,
     resave: false,
@@ -36,7 +42,6 @@ app.use(session({
 }));
 
 
-// Passport.js setup
 passport.use(new DiscordStrategy({
     clientID: config.clientId,
     clientSecret: config.clientSecret,
@@ -64,15 +69,15 @@ passport.deserializeUser((obj, done) => {
 app.use(passport.initialize());
 app.use(passport.session());
 
-// Routes
+
 app.use('/', routes);
 
-// Health Check Endpoint
+
 app.get('/health', (req, res) => {
     res.status(200).send({ message: 'Backend is running!' });
 });
 
-// Start the server
+
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`Server started on http://192.168.1.205:${PORT}`);
 });

@@ -6,7 +6,6 @@ wss.on('connection', ws => {
     
     ws.on('message', message => {
         console.log(`Received message: ${message}`);
-        // Echo the message back to the client
         ws.send(`Server received: ${message}`);
     });
 
