@@ -18,18 +18,22 @@ import ProtectedRoute from './components/ProtectedRoute';
 function App() {
     const [user, setUser] = useState(null);
 
-    // Check user authentication when the app loads
     useEffect(() => {
-        fetch(`${API_BASE_URL}/auth/check`, { credentials: 'include' }) // Includes cookies for authentication
+        fetch(`${API_BASE_URL}/auth/check`, {
+                credentials: 'include',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+            }) 
             .then(response => response.json())
             .then(data => {
                 console.log(`${API_BASE_URL}/auth/check`)
-                console.log('Auth check response:', data); // Debug the response here
+                console.log('Auth check response:', data);
                 if (data.authenticated) {
-                    setUser(data.user); // Set the user if authenticated
+                    setUser(data.user);
                 }
             })
-            .catch(err => console.error('Error in auth check:', err)); // Log any errors during the auth check
+            .catch(err => console.error('Error in auth check:', err));
     }, []);    
 
     return (
