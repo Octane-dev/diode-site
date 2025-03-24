@@ -10,6 +10,15 @@ const nodemailer = require('nodemailer');
 const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
 const { getGuildRoles, getGuildChannels } = require('./controllers/guildController');
 
+
+// Ping Discord Bot
+
+app.get('/ping', (req, res) => {
+    res.status(200).send('Pong!');
+});
+
+///////////////////////////
+
 function checkAuth(req, res, next) {
     if (req.isAuthenticated()) {
         return next();
