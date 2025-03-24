@@ -25,6 +25,27 @@ router.get('/ping', (req, res) => {
     res.status(200).json({ message: 'Pong' });
 });
 
+
+// Get Bot Stats
+
+router.post('/api/bot-data', (req, res) => {
+    const receivedSecret = req.headers['authorization']?.replace('Bearer ', '').trim();
+    const expectedSecret = config.botSecret;
+
+    if (receivedSecret !== expectedSecret) {
+        return res.status(403).json({ error: 'Unauthorized' });
+    }
+
+    const { data } = req.body;
+    if (!data) {
+        return res.status(400).json({ error: 'No data provided' });
+    }
+
+    console.log('Data received from bot:', data);
+
+    res.status(200).json({ message: 'Data received successfully!' });
+});
+
 ///////////////////////////
 
 function checkAuth(req, res, next) {

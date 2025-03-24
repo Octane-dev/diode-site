@@ -20,6 +20,7 @@ module.exports = {
     secretKey: process.env.SECRET_KEY,
     siteUrl: process.env.SITE_URL,
     pingSecret: process.env.PING_SECRET,
+    botSecret: process.env.BOT_API_SECRET,
 
     smtp: {
         user: process.env.SMTP_USER,
