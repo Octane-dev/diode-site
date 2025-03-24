@@ -13,7 +13,7 @@ const { getGuildRoles, getGuildChannels } = require('./controllers/guildControll
 
 // Ping Discord Bot
 
-app.get('/ping', (req, res) => {
+router.get('/ping', (req, res) => {
     const receivedSecret = req.headers['authorization']?.replace('Bearer ', '').trim();
     const expectedSecret = config.pingSecret;
 
