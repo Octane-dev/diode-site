@@ -1,5 +1,3 @@
-const fetch = require('node-fetch');
-
 const pingBot = () => {
     const BOT_URL = 'https://design-heaven-bot.onrender.com/ping';
 
