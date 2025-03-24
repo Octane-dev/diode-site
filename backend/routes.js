@@ -13,7 +13,7 @@ const { getGuildRoles, getGuildChannels } = require('./controllers/guildControll
 
 // Ping Discord Bot
 
-app.get('/ping', (req, res) => {
+router.get('/ping', (req, res) => {
     res.status(200).send('Pong!');
 });
 
