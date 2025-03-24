@@ -6,6 +6,7 @@ const cors = require('cors');
 const DiscordStrategy = require('passport-discord').Strategy;
 const config = require('./config');
 const routes = require('./routes');
+const pingDH = require('./requests/ping-dh-bot');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -66,6 +67,7 @@ passport.deserializeUser((obj, done) => {
 app.use(passport.initialize());
 app.use(passport.session());
 
+pingDH.pingBot();
 
 app.use('/', routes);
 
