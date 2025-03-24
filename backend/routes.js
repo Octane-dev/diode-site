@@ -13,8 +13,16 @@ const { getGuildRoles, getGuildChannels } = require('./controllers/guildControll
 
 // Ping Discord Bot
 
-router.get('/ping', (req, res) => {
-    res.status(200).send('Pong!');
+app.get('/ping', (req, res) => {
+    const receivedSecret = req.headers['authorization']?.replace('Bearer ', '').trim();
+    const expectedSecret = config.pingSecret;
+
+    if (receivedSecret !== expectedSecret) {
+        return res.status(403).json({ error: 'Unauthorized' });
+    }
+
+    console.log('Ping received and authenticated');
+    res.status(200).json({ message: 'Pong' });
 });
 
 ///////////////////////////
