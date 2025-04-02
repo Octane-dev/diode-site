@@ -13,10 +13,13 @@
   "license": "ISC",
   "dependencies": {
     "axios": "^1.7.2",
+    "body-parser": "^2.2.0",
     "cors": "^2.8.5",
+    "csv-parser": "^3.2.0",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "express-session": "^1.18.0",
+    "googleapis": "^148.0.0",
     "lsof": "^0.1.0",
     "node-cache": "^5.1.2",
     "node-fetch": "^3.3.2",

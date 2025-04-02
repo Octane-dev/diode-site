@@ -29,5 +29,11 @@ module.exports = {
         port: 465,
         secure: true,
         admin: process.env.ADMIN_EMAIL,
+        noreplyUser: process.env.SMTP_USER_NOREPLY,
+        noreplyPass: decodePassword(process.env.SMTP_PASS_NOREPLY),
+    },
+
+    google: {
+        sheetScriptUrl: process.env.SHEET_SCRIPT_URL,
     }
 };

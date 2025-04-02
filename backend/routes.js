@@ -9,6 +9,36 @@ const NodeCache = require('node-cache');
 const nodemailer = require('nodemailer');
 const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
 const { getGuildRoles, getGuildChannels } = require('./controllers/guildController');
+const csv = require('csv-parser');
+const { Readable } = require('stream')
+
+// GOOGLE SHEETS
+
+const fetchSheetData = async () => {
+    try {
+        const response = await fetch('http://localhost:3000/api/google/receive-data'); // Update URL as needed
+        const data = await response.json();
+
+        if (!Array.isArray(data) || data.length === 0) {
+            console.log('No valid data received.');
+            return [];
+        }
+
+        // Extract only valid name-email pairs
+        const formattedData = data
+            .map(entry => {
+                const [fullName, email] = entry; // Assuming first value is name, second is email
+                if (!email || email.trim().toUpperCase() === 'N/A') return null; // Skip invalid emails
+                return [fullName, email.trim()];
+            })
+            .filter(entry => entry !== null); // Remove null values
+
+        return formattedData;
+    } catch (error) {
+        console.error('Error fetching sheet data:', error);
+        return [];
+    }
+};
 
 
 // Ping Discord Bot
@@ -335,6 +365,25 @@ router.get('/api/guilds/:guildId/channels', async (req, res) => {
 
 // Non-Discord Processes
 
+
+// Get Google Sheet Info
+
+let sheetData = [];
+
+router.post('/api/google/receive-data', async (req, res) => {
+    try {
+        const { data } = req.body;
+        console.log(data)
+        
+        sheetData = data.filter(row => row.length >= 2);
+
+        res.status(200).send('Data received successfully')
+    } catch (error) {
+        console.error('Error fetching data:',error)
+        res.status(500).send('Internal server error')
+    }
+});
+
 const transporter = nodemailer.createTransport({
     host: config.smtp.host,
     port: config.smtp.port,
@@ -345,11 +394,21 @@ const transporter = nodemailer.createTransport({
     },
 });
 
+const noreplyTransporter = nodemailer.createTransport({
+    host: config.smtp.host,
+    port: config.smtp.port,
+    secure: config.smtp.secure,
+    auth: {
+        user: config.smtp.noreplyUser,
+        pass: config.smtp.noreplyPass,
+    },
+})
+
 console.log(config.smtp)
 
 const mailOptions = {
     from: config.smtp.user,
-    to: 'bjoernflew@gmail.com',
+    to: config.smtp.admin,
     subject: 'Test Email from PrivateEmail',
     text: 'This is a test email sent via PrivateEmail and Nodemailer.',
 };
@@ -438,6 +497,92 @@ router.post('/api/contact', async (req, res) => {
         res.status(500).json({ error: 'Failed to send email.' });
     }
 });
+
+
+router.post('/api/google/email', async (req, res) => {
+    try {
+
+        const emailType = req.query.emailType || 'CUST';
+
+        if (!sheetData || sheetData.length === 0) {
+            return res.status(400).json({ error: 'No email data available' });
+        }
+
+        for (const [fullName, email, link] of sheetData) {
+            if (!email || email.trim().toUpperCase() === 'N/A' || !isValidEmail(email)) {
+                console.log(`Skipping invalid email for ${fullName}`);
+                continue;
+            }
+        
+            const nameParts = fullName.split(',');
+            const firstName = nameParts[1]?.trim() || 'Valued Customer';
+            const lastName = nameParts[0]?.trim() || '';
+        
+            if (emailType === 'NEW') {
+                emailBody = `
+                Hi ${firstName}. GradeBot here! You can find your GRADEBOOK DASHBOARD for this 
+                school year in Google Drive/Shared With Me or using the link: 
+                ${link}
+                Bookmark it right away using the star icon in the address bar.  Once 
+                teachers enter progress information it will show up here!  Keep checking it 
+                to see how you are getting on.  Make sure you show it to your family!  
+                If you aren't sure about anything, ask your subject teacher, or your tutor 
+                teacher.  Once you receive this email it will take me a couple of days to 
+                activate each pupil's Gradebook, so bear with me if nothing is showing up 
+                right away.  If you want to share this with your parents, do so with the 
+                Share button. I'll then have to grant them access.
+                `;
+                htmlBody = `
+                <p>Hi <strong>${firstName}</strong>,</p>
+                
+                <p>GradeBot here! You can find your <strong>GRADEBOOK DASHBOARD</strong> for this school year in <b>Google Drive/Shared With Me</b> or using the link: <a href="${link}">${link}</a></p>    
+                
+                <p>Bookmark it right away using the star icon in the address bar. Once teachers enter progress information, it will show up here! Keep checking it to see how you're getting on. Make sure you show it to your family!</p>
+                
+                <p>If you aren't sure about anything, ask your subject teacher or your tutor teacher. Once you receive this email, it will take me a couple of days to activate each pupil's Gradebook, so bear with me if nothing is showing up right away.</p>
+                
+                <p>If you want to share this with your parents, do so with the Share button. I'll then have to grant them access.</p>
+                `
+            } else if (emailType === 'CUST') {
+                emailBody = `Empty email. Apologies.`
+                htmlBody = `Empty email. Apologies.`
+            }
+            const messageId = `<${Date.now()}-${Math.random().toString(36).substring(7)}@octaneinteractive.co.uk>`;
+            console.log(messageId)
+            const mailOptions = {
+                from: `"GradeBot" <${config.smtp.noreplyUser}>`,
+                to: email,
+                subject: `Your GRADEBOOK DASHBOARD has been shared with you`,
+                text: emailBody,
+                html: htmlBody,
+                messageId: messageId,
+                headers: {
+                    'X-Email-Type': emailType,
+                    'In-Reply-To': undefined,
+                    'References': undefined,
+                }
+            };
+        
+            try {
+                await noreplyTransporter.sendMail(mailOptions);
+                console.log(`Email sent to ${email} (Name: ${firstName} ${lastName})`);
+            } catch (error) {
+                console.error(`Error sending email to ${email}:`, error);
+            }
+        }
+        
+        function isValidEmail(email) {
+            const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+            return emailPattern.test(email);
+        }
+        
+        res.status(200).json({ message: 'Emails sent successfully' });
+    } catch (error) {
+        console.error('Error sending emails:', error);
+        res.status(500).json({ error: 'Failed to send emails' });
+    }
+});
+
 
 
 module.exports = router;

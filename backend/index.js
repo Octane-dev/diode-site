@@ -15,7 +15,8 @@ const PORT = process.env.PORT || 3000;
 const allowedOrigins = [
     'http://localhost:3001',
     'http://192.168.1.205:3001',
-    'https://diode.octaneinteractive.co.uk'   
+    'https://diode.octaneinteractive.co.uk',
+    config.google.sheetScriptUrl,
 ];
 
 app.use(cors({
