@@ -7,10 +7,12 @@ const router = express.Router();
 const config = require('./config');
 const NodeCache = require('node-cache');
 const nodemailer = require('nodemailer');
+const fs = require('fs')
 const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
 const { getGuildRoles, getGuildChannels } = require('./controllers/guildController');
-const csv = require('csv-parser');
-const { Readable } = require('stream')
+// const csv = require('csv-parser');
+// const { Readable } = require('stream')
+// const multer = require('multer');
 
 // GOOGLE SHEETS
 
@@ -40,6 +42,43 @@ const fetchSheetData = async () => {
     }
 };
 
+// UPLOADING
+
+const dirPath = path.join(__dirname, 'uploads');
+fs.readdirSync(dirPath).forEach((file) => {
+  const filePath = path.join(dirPath, file);
+  const stats = fs.statSync(filePath);
+  const age = Date.now() - stats.mtimeMs;
+
+  if (age > 24 * 60 * 60 * 1000) {
+    fs.unlinkSync(filePath);
+  }
+});
+
+router.post('/api/google/upload', async (req, res) => {
+    const { file, fileName } = req.body;
+  
+    if (!file || !fileName) {
+      return res.status(400).json({ error: 'Missing file or filename' });
+    }
+  
+    try {
+      const dirPath = path.join(__dirname, 'uploads');
+      if (!fs.existsSync(dirPath)) {
+        fs.mkdirSync(dirPath);
+      }
+  
+      const fileBuffer = Buffer.from(file, 'base64');
+  
+      const filePath = path.join(dirPath, fileName);
+      fs.writeFileSync(filePath, fileBuffer);
+  
+      res.status(200).json({ message: 'PDF uploaded successfully', filePath });
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      res.status(500).json({ error: 'Failed to upload PDF' });
+    }
+  });
 
 // Ping Discord Bot
 
@@ -501,25 +540,29 @@ router.post('/api/contact', async (req, res) => {
 
 router.post('/api/google/email', async (req, res) => {
     try {
+        const emailType = req.query.emailType || 'cust';
 
-        const emailType = req.query.emailType || 'CUST';
-
-        if (!sheetData || sheetData.length === 0) {
-            return res.status(400).json({ error: 'No email data available' });
-        }
-
-        for (const [fullName, email, link] of sheetData) {
-            if (!email || email.trim().toUpperCase() === 'N/A' || !isValidEmail(email)) {
-                console.log(`Skipping invalid email for ${fullName}`);
-                continue;
+        if (emailType === 'new') {
+            if (!sheetData || sheetData.length === 0) {
+                return res.status(400).json({ error: 'No email data available' });
             }
-        
-            const nameParts = fullName.split(',');
-            const firstName = nameParts[1]?.trim() || 'Valued Customer';
-            const lastName = nameParts[0]?.trim() || '';
-        
-            if (emailType === 'NEW') {
-                emailBody = `
+
+            function isValidEmail(email) {
+                const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+                return emailPattern.test(email);
+            }
+
+            for (const [fullName, email, link] of sheetData) {
+                if (!email || email.trim().toUpperCase() === 'N/A' || !isValidEmail(email)) {
+                    console.log(`Skipping invalid email for ${fullName}`);
+                    continue;
+                }
+
+                const nameParts = fullName.split(',');
+                const firstName = nameParts[1]?.trim() || 'Valued Customer';
+                const lastName = nameParts[0]?.trim() || '';
+
+                const emailBody = `
                 Hi ${firstName}. GradeBot here! You can find your GRADEBOOK DASHBOARD for this 
                 school year in Google Drive/Shared With Me or using the link: 
                 ${link}
@@ -532,7 +575,8 @@ router.post('/api/google/email', async (req, res) => {
                 right away.  If you want to share this with your parents, do so with the 
                 Share button. I'll then have to grant them access.
                 `;
-                htmlBody = `
+
+                const htmlBody = `
                 <p>Hi <strong>${firstName}</strong>,</p>
                 
                 <p>GradeBot here! You can find your <strong>GRADEBOOK DASHBOARD</strong> for this school year in <b>Google Drive/Shared With Me</b> or using the link: <a href="${link}">${link}</a></p>    
@@ -542,17 +586,182 @@ router.post('/api/google/email', async (req, res) => {
                 <p>If you aren't sure about anything, ask your subject teacher or your tutor teacher. Once you receive this email, it will take me a couple of days to activate each pupil's Gradebook, so bear with me if nothing is showing up right away.</p>
                 
                 <p>If you want to share this with your parents, do so with the Share button. I'll then have to grant them access.</p>
-                `
-            } else if (emailType === 'CUST') {
-                emailBody = `Empty email. Apologies.`
-                htmlBody = `Empty email. Apologies.`
+                `;
+
+                const messageId = `<${Date.now()}-${Math.random().toString(36).substring(7)}@octaneinteractive.co.uk>`;
+                console.log(messageId);
+
+                const mailOptions = {
+                    from: `"GradeBot" <${config.smtp.noreplyUser}>`,
+                    to: email,
+                    subject: `Your GRADEBOOK DASHBOARD has been shared with you`,
+                    text: emailBody,
+                    html: htmlBody,
+                    messageId: messageId,
+                    headers: {
+                        'X-Email-Type': emailType,
+                        'In-Reply-To': undefined,
+                        'References': undefined,
+                    }
+                };
+
+                try {
+                    await noreplyTransporter.sendMail(mailOptions);
+                    console.log(`Email sent to ${email} (Name: ${firstName} ${lastName})`);
+                } catch (error) {
+                    console.error(`Error sending email to ${email}:`, error);
+                }
             }
+
+            return res.status(200).json({ message: 'Emails sent successfully' });
+        } 
+        else if (emailType === 'term') {
+            async function fetchSheetData(sheetId, sheetName, apiKey) {
+                const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${sheetName}?key=${apiKey}`;
+                
+                try {
+                    const response = await axios.get(url);
+                    return response.data.values;
+                } catch (error) {
+                    console.error('Error fetching sheet data:', error.response?.data || error.message);
+                    return null;
+                }
+            }
+
+            function generateSheetPDFUrl(spreadsheetId, sheetGid=0) {
+                const today = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+            
+                return `https://docs.google.com/spreadsheets/d/${spreadsheetId}/export?format=pdf&gid=${sheetGid}
+                &portrait=false                        
+                &fitw=true                              
+                &gridlines=false                        
+                &printtitle=true                        
+                &fzr=true                               
+                &horizontal_alignment=CENTER            
+                &vertical_alignment=MIDDLE              
+                &sheetnames=false                       
+                &pagenum=UNDEFINED                      
+                &headerid=1                             
+                &footerid=1                             
+                &customheader1=GRANTOWN%20GRAMMAR%20SCHOOL
+                &customheader2=${encodeURIComponent(today)}
+                &customheader3=SENIOR%20TRACKING%20REPORT   
+                &customfooter3=${encodeURIComponent(today)} 
+                `;
+            }
+                
+
+            if (!sheetData || sheetData.length === 0) {
+                return res.status(400).json({ error: 'No email data available' });
+            }
+
+            function isValidEmail(email) {
+                const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+                return emailPattern.test(email);
+            }
+
+            for (const [fullName, email, link] of sheetData) {
+                if (!email || email.trim().toUpperCase() === 'N/A' || !isValidEmail(email)) {
+                    console.log(`Skipping invalid email for ${fullName}`);
+                    continue;
+                }
+
+                const nameParts = fullName.split(',');
+                const firstName = nameParts[1]?.trim() || 'Valued Customer';
+                const lastName = nameParts[0]?.trim() || '';
+
+                const pdfUrl = generateSheetPDFUrl(link);
+                console.log(pdfUrl)
+
+                let attachments = [];
+                const pdfBuffer = await fetchGoogleSheetPDF(pdfUrl);
+                if (pdfBuffer) {
+                    attachments.push({
+                        filename: `${firstName}_Gradebook.pdf`,
+                        content: pdfBuffer,
+                        encoding: 'base64'
+                    });
+                }
+
+                const emailBody = `
+                Hi.
+
+                Here is an email copy of your gradebook
+                Please your Gradebook dashboard, and speak to your teachers
+                if anything is incorrect or unclear.
+                
+                This file is a PDF and should open in Gmail and other mail apps. Some
+                users may need to save the file and open in a PDF reader.
+
+                Kind regards,
+                GradeBot
+                `;
+
+                const htmlBody = `
+                <p>Hi.</p>
+
+                <p>Here is an email copy of your gradebook</p>
+                <p>Please your Gradebook dashboard, and speak to your teachers</p>
+                <p>if anything is incorrect or unclear.</p>
+                
+                <p>This file is a PDF and should open in Gmail and other mail apps. Some</p>
+                <p>users may need to save the file and open in a PDF reader.</p>
+
+                <p>Kind regards,</p>
+                <p>GradeBot</p>
+                `;
+
+                const messageId = `<${Date.now()}-${Math.random().toString(36).substring(7)}@octaneinteractive.co.uk>`;
+                console.log(messageId);
+
+                const mailOptions = {
+                    from: `"GradeBot" <${config.smtp.noreplyUser}>`,
+                    to: email,
+                    subject: `Your SENIOR PHASE REPORT`,
+                    text: emailBody,
+                    html: htmlBody,
+                    messageId: messageId,
+                    attachments: [
+                        {
+                            filename: path.basename(filePath),
+                            path: filePath,
+                        }
+                    ],
+                    headers: {
+                        'X-Email-Type': emailType,
+                        'In-Reply-To': undefined,
+                        'References': undefined,
+                    }
+                };
+
+                try {
+                    await noreplyTransporter.sendMail(mailOptions);
+                    console.log(`Email sent to ${email} with PDF attachment`);
+                } catch (error) {
+                    console.error(`Error sending email to ${email}:`, error);
+                }
+            }
+
+            return res.status(200).json({ message: 'Emails with PDFs sent successfully' });
+        }
+        else if (emailType === 'cust') {
+            const recipientEmail = req.body.recipientEmail;
+            if (!recipientEmail) {
+                return res.status(400).json({ error: 'Recipient email is required for custom emails' });
+            }
+
+            const senderId = req.body.senderId || "";
+
+            const emailBody = req.body.emailData || `Empty email. Apologies for the hold-up.`;
+            const htmlBody = `<p>${req.body.emailData || `Empty email. Apologies for the hold-up.`}</p>`;
+
             const messageId = `<${Date.now()}-${Math.random().toString(36).substring(7)}@octaneinteractive.co.uk>`;
-            console.log(messageId)
+            console.log(messageId);
+
             const mailOptions = {
-                from: `"GradeBot" <${config.smtp.noreplyUser}>`,
-                to: email,
-                subject: `Your GRADEBOOK DASHBOARD has been shared with you`,
+                from: `"${senderId}" <${config.smtp.noreplyUser}>`,
+                to: recipientEmail,
+                subject: req.body.subject || 'No Subject',
                 text: emailBody,
                 html: htmlBody,
                 messageId: messageId,
@@ -562,27 +771,24 @@ router.post('/api/google/email', async (req, res) => {
                     'References': undefined,
                 }
             };
-        
+
             try {
                 await noreplyTransporter.sendMail(mailOptions);
-                console.log(`Email sent to ${email} (Name: ${firstName} ${lastName})`);
+                console.log(`Custom email sent to ${recipientEmail}`);
+                return res.status(200).json({ message: 'Custom email sent successfully' });
             } catch (error) {
-                console.error(`Error sending email to ${email}:`, error);
+                console.error(`Error sending custom email to ${recipientEmail}:`, error);
+                return res.status(500).json({ error: 'Failed to send custom email' });
             }
+        } 
+        else {
+            return res.status(400).json({ error: 'Invalid emailType' });
         }
-        
-        function isValidEmail(email) {
-            const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-            return emailPattern.test(email);
-        }
-        
-        res.status(200).json({ message: 'Emails sent successfully' });
+
     } catch (error) {
         console.error('Error sending emails:', error);
-        res.status(500).json({ error: 'Failed to send emails' });
+        return res.status(500).json({ error: 'Failed to send emails' });
     }
 });
-
-
 
 module.exports = router;

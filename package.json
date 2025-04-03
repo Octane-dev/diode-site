@@ -21,6 +21,7 @@
     "express-session": "^1.18.0",
     "googleapis": "^148.0.0",
     "lsof": "^0.1.0",
+    "multer": "^1.4.5-lts.2",
     "node-cache": "^5.1.2",
     "node-fetch": "^3.3.2",
     "nodemailer": "^6.10.0",
