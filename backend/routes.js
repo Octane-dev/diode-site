@@ -17,7 +17,7 @@ const { getGuildRoles, getGuildChannels } = require('./controllers/guildControll
 
 // File Viewing
 
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+router.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // GOOGLE SHEETS
 
