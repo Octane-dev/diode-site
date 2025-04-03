@@ -15,6 +15,10 @@ const { getGuildRoles, getGuildChannels } = require('./controllers/guildControll
 // const { Readable } = require('stream')
 // const multer = require('multer');
 
+// File Viewing
+
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 // GOOGLE SHEETS
 
 const fetchSheetData = async () => {
