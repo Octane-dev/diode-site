@@ -11,7 +11,7 @@ const pingDH = require('./requests/ping-dh-bot');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(bodyParser.json({ limit: '50mb' }));
+// app.use(bodyParser.json({ limit: '50mb' }));
 
 // CORS Configuration
 const allowedOrigins = [
