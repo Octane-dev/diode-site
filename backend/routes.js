@@ -44,17 +44,6 @@ const fetchSheetData = async () => {
 
 // UPLOADING
 
-const dirPath = path.join(__dirname, 'uploads');
-fs.readdirSync(dirPath).forEach((file) => {
-  const filePath = path.join(dirPath, file);
-  const stats = fs.statSync(filePath);
-  const age = Date.now() - stats.mtimeMs;
-
-  if (age > 24 * 60 * 60 * 1000) {
-    fs.unlinkSync(filePath);
-  }
-});
-
 router.post('/api/google/upload', async (req, res) => {
     const { file, fileName } = req.body;
   
@@ -63,7 +52,8 @@ router.post('/api/google/upload', async (req, res) => {
     }
   
     try {
-      const dirPath = path.join(__dirname, 'uploads');
+      const dirPath = path.join(process.cwd(), 'uploads');
+  
       if (!fs.existsSync(dirPath)) {
         fs.mkdirSync(dirPath);
       }
