@@ -611,104 +611,68 @@ router.post('/api/google/email', async (req, res) => {
             return res.status(200).json({ message: 'Emails sent successfully' });
         } 
         else if (emailType === 'term') {
-            async function fetchSheetData(sheetId, sheetName, apiKey) {
-                const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${sheetName}?key=${apiKey}`;
-                
-                try {
-                    const response = await axios.get(url);
-                    return response.data.values;
-                } catch (error) {
-                    console.error('Error fetching sheet data:', error.response?.data || error.message);
-                    return null;
-                }
-            }
-
-            function generateSheetPDFUrl(spreadsheetId, sheetGid=0) {
-                const today = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
-            
-                return `https://docs.google.com/spreadsheets/d/${spreadsheetId}/export?format=pdf&gid=${sheetGid}
-                &portrait=false                        
-                &fitw=true                              
-                &gridlines=false                        
-                &printtitle=true                        
-                &fzr=true                               
-                &horizontal_alignment=CENTER            
-                &vertical_alignment=MIDDLE              
-                &sheetnames=false                       
-                &pagenum=UNDEFINED                      
-                &headerid=1                             
-                &footerid=1                             
-                &customheader1=GRANTOWN%20GRAMMAR%20SCHOOL
-                &customheader2=${encodeURIComponent(today)}
-                &customheader3=SENIOR%20TRACKING%20REPORT   
-                &customfooter3=${encodeURIComponent(today)} 
-                `;
-            }
-                
-
             if (!sheetData || sheetData.length === 0) {
                 return res.status(400).json({ error: 'No email data available' });
             }
-
+        
             function isValidEmail(email) {
                 const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
                 return emailPattern.test(email);
             }
-
+        
             for (const [fullName, email, link] of sheetData) {
                 if (!email || email.trim().toUpperCase() === 'N/A' || !isValidEmail(email)) {
                     console.log(`Skipping invalid email for ${fullName}`);
                     continue;
                 }
-
+        
                 const nameParts = fullName.split(',');
                 const firstName = nameParts[1]?.trim() || 'Valued Customer';
                 const lastName = nameParts[0]?.trim() || '';
-
-                const pdfUrl = generateSheetPDFUrl(link);
-                console.log(pdfUrl)
-
-                let attachments = [];
-                const pdfBuffer = await fetchGoogleSheetPDF(pdfUrl);
-                if (pdfBuffer) {
-                    attachments.push({
-                        filename: `${firstName}_Gradebook.pdf`,
-                        content: pdfBuffer,
-                        encoding: 'base64'
-                    });
+        
+                // Construct expected PDF filename
+                const sanitizedFirstName = firstName.replace(/[\/:*?"<>|]/g, '_');
+                const sanitizedLastName = lastName.replace(/[\/:*?"<>|]/g, '_');
+                const expectedFilename = `${sanitizedFirstName}_${sanitizedLastName}_estimated_grades.pdf`;
+        
+                const filePath = path.join(__dirname, 'uploads', expectedFilename);
+        
+                if (!fs.existsSync(filePath)) {
+                    console.warn(`PDF file not found for ${fullName}: ${filePath}`);
+                    continue;
                 }
-
+        
                 const emailBody = `
                 Hi.
-
+        
                 Here is an email copy of your gradebook
-                Please your Gradebook dashboard, and speak to your teachers
+                Please check your Gradebook dashboard, and speak to your teachers
                 if anything is incorrect or unclear.
                 
                 This file is a PDF and should open in Gmail and other mail apps. Some
-                users may need to save the file and open in a PDF reader.
-
+                users may need to save the file and open it in a PDF reader.
+        
                 Kind regards,
                 GradeBot
                 `;
-
+        
                 const htmlBody = `
                 <p>Hi.</p>
-
+        
                 <p>Here is an email copy of your gradebook</p>
-                <p>Please your Gradebook dashboard, and speak to your teachers</p>
+                <p>Please check your Gradebook dashboard, and speak to your teachers</p>
                 <p>if anything is incorrect or unclear.</p>
                 
                 <p>This file is a PDF and should open in Gmail and other mail apps. Some</p>
-                <p>users may need to save the file and open in a PDF reader.</p>
-
+                <p>users may need to save the file and open it in a PDF reader.</p>
+        
                 <p>Kind regards,</p>
                 <p>GradeBot</p>
                 `;
-
+        
                 const messageId = `<${Date.now()}-${Math.random().toString(36).substring(7)}@octaneinteractive.co.uk>`;
-                console.log(messageId);
-
+                console.log(`Sending email to: ${email} with attachment: ${filePath}`);
+        
                 const mailOptions = {
                     from: `"GradeBot" <${config.smtp.noreplyUser}>`,
                     to: email,
@@ -728,7 +692,7 @@ router.post('/api/google/email', async (req, res) => {
                         'References': undefined,
                     }
                 };
-
+        
                 try {
                     await noreplyTransporter.sendMail(mailOptions);
                     console.log(`Email sent to ${email} with PDF attachment`);
@@ -736,7 +700,88 @@ router.post('/api/google/email', async (req, res) => {
                     console.error(`Error sending email to ${email}:`, error);
                 }
             }
+        
+            return res.status(200).json({ message: 'Emails with PDFs sent successfully' });
+        }
+        else if (emailType === 'estimate') {
+            if (!sheetData || sheetData.length === 0) {
+                return res.status(400).json({ error: 'No email data available' });
+            }
+        
+            function isValidEmail(email) {
+                const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+                return emailPattern.test(email);
+            }
+        
+            for (const [fullName, email, link] of sheetData) {
+                if (!email || email.trim().toUpperCase() === 'N/A' || !isValidEmail(email)) {
+                    console.log(`Skipping invalid email for ${fullName}`);
+                    continue;
+                }
+        
+                const nameParts = fullName.split(',');
+                const firstName = nameParts[1]?.trim() || 'Valued Customer';
+                const lastName = nameParts[0]?.trim() || '';
+        
+                // Construct expected PDF filename
+                const sanitizedFirstName = firstName.replace(/[\/:*?"<>|]/g, '_');
+                const sanitizedLastName = lastName.replace(/[\/:*?"<>|]/g, '_');
+                const expectedFilename = `${sanitizedFirstName}_${sanitizedLastName}_estimated_grades.pdf`;
+        
+                const filePath = path.join(__dirname, 'uploads', expectedFilename);
+        
+                if (!fs.existsSync(filePath)) {
+                    console.warn(`PDF file not found for ${fullName}: ${filePath}`);
+                    continue;
+                }
+        
+                const emailBody = `
+                Hi. Here are the SQA estimates and tracking for: ${fullName}
 
+                Please read this in conjunction with the school letter, where more 
+                information is given about how estimates relate to targets, Marking Reviews 
+                and Exceptional Circumstances.
+                `;
+        
+                const htmlBody = `
+                <p>Hi. Here are the SQA estimates and tracking for: ${fullName}</p>
+
+                <p>Please read this in conjunction with the school letter, where more</p>
+                <p>information is given about how estimates relate to targets, Marking Reviews</p>
+                <p>and Exceptional Circumstances.</p>
+                `;
+        
+                const messageId = `<${Date.now()}-${Math.random().toString(36).substring(7)}@octaneinteractive.co.uk>`;
+                console.log(`Sending email to: ${email} with attachment: ${filePath}`);
+        
+                const mailOptions = {
+                    from: `"GradeBot" <${config.smtp.noreplyUser}>`,
+                    to: email,
+                    subject: `${fullName} SQA ESTIMATES 2024-2025`,
+                    text: emailBody,
+                    html: htmlBody,
+                    messageId: messageId,
+                    attachments: [
+                        {
+                            filename: path.basename(filePath),
+                            path: filePath,
+                        }
+                    ],
+                    headers: {
+                        'X-Email-Type': emailType,
+                        'In-Reply-To': undefined,
+                        'References': undefined,
+                    }
+                };
+        
+                try {
+                    await noreplyTransporter.sendMail(mailOptions);
+                    console.log(`Email sent to ${email} with PDF attachment`);
+                } catch (error) {
+                    console.error(`Error sending email to ${email}:`, error);
+                }
+            }
+        
             return res.status(200).json({ message: 'Emails with PDFs sent successfully' });
         }
         else if (emailType === 'cust') {
