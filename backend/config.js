@@ -35,5 +35,6 @@ module.exports = {
 
     google: {
         sheetScriptUrl: process.env.SHEET_SCRIPT_URL,
+        sheetScriptUrl2: process.env.SHEET_SCRIPT_URL2,
     }
 };
