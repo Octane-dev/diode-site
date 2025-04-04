@@ -11,6 +11,7 @@ const fs = require('fs')
 const path = require('path')
 const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
 const { getGuildRoles, getGuildChannels } = require('./controllers/guildController');
+const { error } = require('console');
 // const csv = require('csv-parser');
 // const { Readable } = require('stream')
 // const multer = require('multer');
@@ -532,6 +533,46 @@ router.post('/api/contact', async (req, res) => {
     }
 });
 
+
+router.post('/api/google/signup', async (req, res) => {
+    const type = req.query.type || "none"
+
+    if (type === 'gradebook') {
+        const { fullName, email, yearGroup } = req.body;
+
+        if (!fullName || !email || !yearGroup) {
+            return res.status(400).json({ error: "Missing required fields" });
+        }
+
+        console.log(`New Signup: ${fullName}, ${email}, Year: ${yearGroup}`);
+
+        const mailOptions = {
+            from: `"GradeBot" <${config.smtp.noreplyUser}>`,
+            to: email,
+            subject: "Welcome to the Gradebook System!",
+            text: `Hi ${fullName},\n\nWelcome! You have been successfully registered.\n\nYear Group: ${yearGroup}\n\nRegards,\nGradeBot`,
+            html: `<p>Hi ${fullName},</p><p>Welcome! You have been successfully registered.</p><p><b>Year Group:</b> ${yearGroup}</p><p>Regards,<br>GradeBot</p>`
+        };
+
+        try {
+            await transporter.sendMail(mailOptions);
+            console.log(`Confirmation email sent to ${email}`);
+
+            const studentData = `"${fullName}","${email}","${yearGroup}"\n`;
+
+            console.log(`Added to gradebook: ${fullName}`);
+
+            return res.status(200).json({ message: "Signup successful" });
+
+        } catch (error) {
+            console.error(`Error processing signup: ${error.message}`);
+            return res.status(500).json({ error: "Internal server error" });
+        }
+    }
+    else {
+        return res.status(422).json({ error: "Invalid type parameter" });
+    }
+});
 
 router.post('/api/google/email', async (req, res) => {
     try {

@@ -19,6 +19,7 @@ const allowedOrigins = [
     'http://192.168.1.205:3001',
     'https://diode.octaneinteractive.co.uk',
     config.google.sheetScriptUrl,
+    config.google.sheetScriptUrl2,
 ];
 
 app.use(cors({
