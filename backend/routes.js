@@ -12,6 +12,7 @@ const path = require('path')
 const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
 const { getGuildRoles, getGuildChannels } = require('./controllers/guildController');
 const { error } = require('console');
+const crypto = require('crypto');
 // const csv = require('csv-parser');
 // const { Readable } = require('stream')
 // const multer = require('multer');
@@ -538,27 +539,67 @@ router.post('/api/google/signup', async (req, res) => {
     const type = req.query.type || "none"
 
     if (type === 'gradebook') {
-        const { fullName, email, yearGroup } = req.body;
+        const { fullName, email, yearGroup, subjects } = req.body;
 
-        if (!fullName || !email || !yearGroup) {
+        if (!fullName || !email || !yearGroup || !subjects) {
             return res.status(400).json({ error: "Missing required fields" });
         }
 
         console.log(`New Signup: ${fullName}, ${email}, Year: ${yearGroup}`);
 
+        const verificationCode = crypto.randomBytes(3).toString('hex').toUpperCase();
+
+        const signupText = `
+        Hi ${fullName},
+
+        Welcome to the Gradebook system! You've been successfully registered.
+
+        Year Group: ${yearGroup}
+        Subjects: ${subjects || 'Not Provided'}
+
+        Your verification code: ${verificationCode}
+
+        If you need to change your subjects, please reply to this email, and we'll update your registration.
+
+        If you have any questions, feel free to email us at contact@octaneinteractive.co.uk or reply to this message.
+
+        Thanks again, and welcome aboard!
+
+        Regards,
+        GradeBot
+        `;
+
+        const signupHtml = `
+        <p>Hi ${fullName},</p>
+
+        <p>Welcome to the Gradebook system! You've been successfully registered.</p>
+
+        <p><strong>Year Group:</strong> ${yearGroup}<br>
+        <strong>Subjects:</strong> ${subjects || 'Not Provided'}</p>
+
+        <p><strong>Your Verification Code:</strong> ${verificationCode}</p>
+
+        <p>If you need to change your subjects, please reply to this email, and we'll update your registration.</p>
+
+        <p>If you have any questions, feel free to <a href="mailto:contact@octaneinteractive.co.uk">contact us directly</a> or reply to this email.</p>
+
+        <p>Thanks again, and welcome aboard!</p>
+
+        <p>Regards,<br>
+        GradeBot</p>
+        `;
+        
         const mailOptions = {
             from: `"GradeBot" <${config.smtp.noreplyUser}>`,
             to: email,
             subject: "Welcome to the Gradebook System!",
-            text: `Hi ${fullName},\n\nWelcome! You have been successfully registered.\n\nYear Group: ${yearGroup}\n\nRegards,\nGradeBot`,
-            html: `<p>Hi ${fullName},</p><p>Welcome! You have been successfully registered.</p><p><b>Year Group:</b> ${yearGroup}</p><p>Regards,<br>GradeBot</p>`
+            text: signupText,
+            html: signupHtml
         };
 
         try {
             await noreplyTransporter.sendMail(mailOptions);
             console.log(`Confirmation email sent to ${email}`);
-
-            const studentData = `"${fullName}","${email}","${yearGroup}"\n`;
 
             console.log(`Added to gradebook: ${fullName}`);
 
