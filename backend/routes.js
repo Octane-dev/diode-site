@@ -553,10 +553,13 @@ router.post('/api/google/signup', async (req, res) => {
         : subjects;  
         console.log(formattedSubjects)
 
+        const firstName = fullName.split(',')[1]
+        const lastName = fullName.split(',')[0]
+
         const verificationCode = crypto.randomBytes(3).toString('hex').toUpperCase();
 
         const signupText = `
-        Hi ${fullName},
+        Hi ${firstName},
 
         Welcome to the Gradebook system! You've been successfully registered.
 
@@ -577,7 +580,7 @@ router.post('/api/google/signup', async (req, res) => {
         `;
 
         const signupHtml = `
-        <p>Hi ${fullName},</p>
+        <p>Hi ${firstName},</p>
 
         <p>Welcome to the Gradebook system! You've been successfully registered.</p>
 
@@ -611,6 +614,14 @@ router.post('/api/google/signup', async (req, res) => {
             await noreplyTransporter.sendMail(mailOptions);
             console.log(`Confirmation email sent to ${email}`);
 
+            const googleSheetsEndpoint = config.google.sheetScriptUrl3;
+            await axios.post(googleSheetsEndpoint, {
+                fullName,
+                email,
+                yearGroup,
+                subjects
+            });
+
             console.log(`Added to gradebook: ${fullName}`);
 
             return res.status(200).json({ message: "Signup successful" });
@@ -624,6 +635,27 @@ router.post('/api/google/signup', async (req, res) => {
         return res.status(422).json({ error: "Invalid type parameter" });
     }
 });
+
+router.post('/api/google/verify', async (req, res) => {
+    const { email, code } = req.body;
+
+    if (!email || !code) {
+        return res.status(400).json({ error: "Missing email or code" });
+    }
+
+    const storedCode = await db.getVerificationCode(email); // Replace with your actual lookup
+    if (!storedCode) {
+        return res.status(404).json({ error: "Verification code not found" });
+    }
+
+    if (storedCode === code.trim().toUpperCase()) {
+        await db.markUserVerified(email); // Or just delete the code
+        return res.status(200).json({ message: "Verification successful" });
+    }
+
+    return res.status(401).json({ error: "Incorrect code" });
+});
+
 
 router.post('/api/google/email', async (req, res) => {
     try {
