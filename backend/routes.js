@@ -555,7 +555,8 @@ router.post('/api/google/signup', async (req, res) => {
         Welcome to the Gradebook system! You've been successfully registered.
 
         Year Group: ${yearGroup}
-        Subjects: ${subjects || 'Not Provided'}
+        Subjects:
+        ${subjects.split(',').map(subject => `- ${subject}`).join('\n')}
 
         Your verification code: ${verificationCode}
 
@@ -575,7 +576,8 @@ router.post('/api/google/signup', async (req, res) => {
         <p>Welcome to the Gradebook system! You've been successfully registered.</p>
 
         <p><strong>Year Group:</strong> ${yearGroup}<br>
-        <strong>Subjects:</strong> ${subjects || 'Not Provided'}</p>
+        <strong>Subjects:</strong></p>
+        <p>${subjects.split(',').map(subject => `- ${subject}`).join('\n')}</p>
 
         <p><strong>Your Verification Code:</strong> ${verificationCode}</p>
 
