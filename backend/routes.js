@@ -547,6 +547,12 @@ router.post('/api/google/signup', async (req, res) => {
 
         console.log(`New Signup: ${fullName}, ${email}, Year: ${yearGroup}`);
 
+        console.log(subjects)
+        const formattedSubjects = Array.isArray(subjects)
+        ? subjects.join(', ')
+        : subjects;  
+        console.log(formattedSubjects)
+
         const verificationCode = crypto.randomBytes(3).toString('hex').toUpperCase();
 
         const signupText = `
@@ -556,7 +562,7 @@ router.post('/api/google/signup', async (req, res) => {
 
         Year Group: ${yearGroup}
         Subjects:
-        ${subjects.split(',').map(subject => `- ${subject}`).join('\n')}
+        ${formattedSubjects.split(',').map(subject => `- ${subject}`).join('\n')}
 
         Your verification code: ${verificationCode}
 
@@ -577,7 +583,7 @@ router.post('/api/google/signup', async (req, res) => {
 
         <p><strong>Year Group:</strong> ${yearGroup}<br>
         <strong>Subjects:</strong></p>
-        <p>${subjects.split(',').map(subject => `- ${subject}`).join('\n')}</p>
+        <p>${formattedSubjects.split(',').map(subject => `- ${subject}`).join('\n')}</p>
 
         <p><strong>Your Verification Code:</strong> ${verificationCode}</p>
 
