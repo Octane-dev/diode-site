@@ -583,7 +583,9 @@ router.post('/api/google/signup', async (req, res) => {
 
         <p><strong>Year Group:</strong> ${yearGroup}<br>
         <strong>Subjects:</strong></p>
-        <p>${formattedSubjects.split(',').map(subject => `- ${subject}`).join('\n')}</p>
+        <ul>
+            ${formattedSubjects.split(',').map(subject => `<li>${subject.trim()}</li>`).join('')}
+        </ul>
 
         <p><strong>Your Verification Code:</strong> ${verificationCode}</p>
 
