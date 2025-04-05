@@ -555,7 +555,7 @@ router.post('/api/google/signup', async (req, res) => {
         };
 
         try {
-            await transporter.sendMail(mailOptions);
+            await noreplyTransporter.sendMail(mailOptions);
             console.log(`Confirmation email sent to ${email}`);
 
             const studentData = `"${fullName}","${email}","${yearGroup}"\n`;
