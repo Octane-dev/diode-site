@@ -20,6 +20,8 @@ const allowedOrigins = [
     'https://diode.octaneinteractive.co.uk',
     config.google.sheetScriptUrl,
     config.google.sheetScriptUrl2,
+    'https://www.google.com',
+    'https://sites.google.com',
     'https://sites.google.com/sites.google.com/view/gradebookservice',
 ];
 
