@@ -23,11 +23,26 @@ const allowedOrigins = [
     'https://www.google.com',
     'https://sites.google.com',
     'https://sites.google.com/sites.google.com/view/gradebookservice',
-    'https://760521668-atari-embeds.googleusercontent.com',
 ];
 
+const allowedGoogleEmbedPattern = /\.googleusercontent\.com$/;
+
 app.use(cors({
-    origin: allowedOrigins,
+    origin: function (origin, callback) {
+        if (!origin) return callback(null, true);
+
+        const originHost = new URL(origin).hostname;
+
+        if (
+            allowedOrigins.includes(origin) ||
+            allowedGoogleEmbedPattern.test(originHost)
+        ) {
+            callback(null, true);
+        } else {
+            console.log('❌ Blocked by CORS:', origin);
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     credentials: true
 }));
 
