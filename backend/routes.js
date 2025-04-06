@@ -635,7 +635,7 @@ router.post('/api/google/signup', async (req, res) => {
             verificationStore[verificationCode.trim().toUpperCase()] = {
                 email,
                 fullName,
-                subjects: subjects.split(',').map(subject => subject.trim().toUpperCase())
+                subjects: formattedSubjects.split(',').map(subject => subject.trim().toUpperCase())
             };
 
             console.log(`Added to gradebook: ${fullName}`);
