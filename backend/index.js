@@ -23,6 +23,7 @@ const allowedOrigins = [
     'https://www.google.com',
     'https://sites.google.com',
     'https://sites.google.com/sites.google.com/view/gradebookservice',
+    'https://760521668-atari-embeds.googleusercontent.com',
 ];
 
 app.use(cors({
