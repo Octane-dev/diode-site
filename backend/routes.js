@@ -620,6 +620,11 @@ router.post('/api/google/signup', async (req, res) => {
                 email,
                 yearGroup,
                 subjects
+            },
+            {
+                headers: {
+                    'Content-Type': 'application/json'
+                }
             });
 
             console.log(`Added to gradebook: ${fullName}`);
