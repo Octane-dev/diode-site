@@ -534,6 +534,7 @@ router.post('/api/contact', async (req, res) => {
     }
 });
 
+const verificationStore = {};
 
 router.post('/api/google/signup', async (req, res) => {
     const type = req.query.type || "none"
@@ -569,6 +570,8 @@ router.post('/api/google/signup', async (req, res) => {
 
         Your verification code: ${verificationCode}
 
+        Please reply to this email with your verification code and your subject studying levels.
+
         If you need to change your subjects, please reply to this email, and we'll update your registration.
 
         If you have any questions, feel free to email us at contact@octaneinteractive.co.uk or reply to this message.
@@ -591,6 +594,8 @@ router.post('/api/google/signup', async (req, res) => {
         </ul>
 
         <p><strong>Your Verification Code:</strong> ${verificationCode}</p>
+
+        <p><strong>Please reply to this email with your verification code and your subject studying levels.</strong></p>
 
         <p>If you need to change your subjects, please reply to this email, and we'll update your registration.</p>
 
@@ -627,6 +632,12 @@ router.post('/api/google/signup', async (req, res) => {
                 }
             });
 
+            verificationStore[verificationCode.trim().toUpperCase()] = {
+                email,
+                fullName,
+                subjects: subjects.split(',').map(subject => subject.trim().toUpperCase())
+            };
+
             console.log(`Added to gradebook: ${fullName}`);
 
             return res.status(200).json({ message: "Signup successful" });
@@ -641,24 +652,29 @@ router.post('/api/google/signup', async (req, res) => {
     }
 });
 
-router.post('/api/google/verify', async (req, res) => {
+router.post('/api/google/verify', (req, res) => {
     const { email, code } = req.body;
 
     if (!email || !code) {
         return res.status(400).json({ error: "Missing email or code" });
     }
 
-    const storedCode = await db.getVerificationCode(email); // Replace with your actual lookup
-    if (!storedCode) {
+    const storedData = verificationStore[code.trim().toUpperCase()];
+
+    if (!storedData) {
         return res.status(404).json({ error: "Verification code not found" });
     }
 
-    if (storedCode === code.trim().toUpperCase()) {
-        await db.markUserVerified(email); // Or just delete the code
-        return res.status(200).json({ message: "Verification successful" });
+    if (storedData.email === email) {
+        return res.status(200).json({
+            message: "Verification successful",
+            subjects: storedData.subjects,
+            fullName: storedData.fullName,
+            email: storedData.email
+        });
     }
 
-    return res.status(401).json({ error: "Incorrect code" });
+    return res.status(401).json({ error: "Incorrect code for this email" });
 });
 
 
